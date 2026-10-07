@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Ronald Abi — Founder, Brand Partners | Cinematographer</title>
+<meta name="description" content="Ronald Abi — cinematographer and founder of Brand Partners. We capture every precious moment." />
+<meta name="theme-color" content="#000000" />
+
+<!-- ============ FONTS ============ -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Barlow:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="style.css" />
+
+<!-- Missing-image fallback: shows a labelled empty frame instead of a broken icon -->
+<script>
+  window.__imgFail = function (el) {
+    var f = el.closest('.frame');
+    if (f) f.classList.add('is-empty');
+    el.style.visibility = 'hidden';
+  };
+</script>
+</head>
+
+<body class="is-loading">
+
+<!-- ============================================================
+     0. GLOBAL CAMERA OVERLAYS (grain / vignette / frame guides)
+     ============================================================ -->
+<div class="fx-grain" aria-hidden="true"></div>
+<div class="fx-vignette" aria-hidden="true"></div>
+<div class="fx-guides" aria-hidden="true">
+  <span class="guide guide--tl"></span><span class="guide guide--tr"></span>
+  <span class="guide guide--bl"></span><span class="guide guide--br"></span>
+</div>
+
+<div class="hud-rec" aria-hidden="true">
+  <span class="hud-rec__dot"></span><span>REC</span>
+  <span class="hud-rec__tc" id="timecode">00:00:00:00</span>
+</div>
+
+<div class="cursor" aria-hidden="true">
+  <span class="cursor__dot"></span>
+  <span class="cursor__ring"></span>
+  <span class="cursor__label"></span>
+</div>
+
+<!-- ============================================================
+     1. OPENING SEQUENCE
+        3D CAMERA → LENS PUSH-IN → SHUTTER CLICK → FLASH
+        → TITLE CARD → WEBSITE
+     ============================================================ -->
+<div class="intro" id="intro">
+
+  <!-- the 3D cinema camera is rendered here (Three.js) -->
+  <canvas class="intro__scene" id="introScene" aria-hidden="true"></canvas>
+
+  <!-- tiny camera details around the frame -->
+  <div class="intro__hud" aria-hidden="true">
+    <span class="ihud ihud--tl">A / 2.8 &nbsp; 24 FPS</span>
+    <span class="ihud ihud--tr">ISO 800 &nbsp; 1/50</span>
+    <span class="ihud ihud--bl">FOCUS <i class="ihud__bar"></i></span>
+    <span class="ihud ihud--br">4K &nbsp; RAW</span>
+    <span class="focus-mark focus-mark--1"></span>
+    <span class="focus-mark focus-mark--2"></span>
+    <span class="focus-mark focus-mark--3"></span>
+  </div>
+
+  <!-- MOVIE TITLE CARD (revealed after the flash) -->
+  <div class="title-card" id="titleCard">
+    <!-- LOGO PLACEHOLDER — replace the <p> below with:
+         <img src="assets/logo.svg" alt="Brand Partners" class="title-card__logo" data-line> -->
+    <p class="title-card__brand" data-line>BRAND PARTNERS</p>
+    <h1 class="title-card__name" data-line>RONALD ABI</h1>
+    <p class="title-card__role" data-line>FOUNDER<span class="sep"></span>CINEMATOGRAPHER</p>
+    <p class="title-card__tag">
+      <span data-line>We Capture</span>
+      <span data-line>Every Precious</span>
+      <span data-line>Moment.</span>
+    </p>
+  </div>
+
+  <!-- APERTURE BLADES — the shutter that closes on "click" -->
+  <svg class="aperture" id="aperture" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g id="blades" transform="translate(500,500)">
+      <g transform="rotate(0)"><rect class="blade" x="-1400" y="-2800" width="2800" height="2800"/></g>
+      <g transform="rotate(60)"><rect class="blade" x="-1400" y="-2800" width="2800" height="2800"/></g>
+      <g transform="rotate(120)"><rect class="blade" x="-1400" y="-2800" width="2800" height="2800"/></g>
+      <g transform="rotate(180)"><rect class="blade" x="-1400" y="-2800" width="2800" height="2800"/></g>
+      <g transform="rotate(240)"><rect class="blade" x="-1400" y="-2800" width="2800" height="2800"/></g>
+      <g transform="rotate(300)"><rect class="blade" x="-1400" y="-2800" width="2800" height="2800"/></g>
+    </g>
+  </svg>
+
+  <button class="intro__skip" id="introSkip" type="button">Skip intro</button>
+</div>
+
+<div class="flash" id="flash" aria-hidden="true"></div>
+
+<!-- ============================================================
+     2. THREE.JS AMBIENT SCENE (fixed, behind the site)
+     ============================================================ -->
+<canvas id="scene" class="scene" aria-hidden="true"></canvas>
+
+<!-- ============================================================
+     3. NAVIGATION
+     ============================================================ -->
+<header class="nav" id="nav">
+  <a class="nav__logo" href="#home" data-cursor="link">
+    <!-- LOGO PLACEHOLDER — swap the <span> for:
+         <img src="assets/logo.svg" alt="Brand Partners" class="nav__logo-img"> -->
+    <span class="nav__logo-mark">BRAND<i>PARTNERS</i></span>
+  </a>
+
+  <nav class="nav__links" aria-label="Primary">
+    <a href="#work" data-cursor="link">Work</a>
+    <a href="#career" data-cursor="link">Career</a>
+    <a href="#about" data-cursor="link">About</a>
+    <a href="#contact" data-cursor="link">Contact</a>
+  </nav>
+
+  <button class="nav__toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+    <span></span><span></span>
+  </button>
+</header>
+
+<div class="menu" id="menu" aria-hidden="true">
+  <nav aria-label="Mobile">
+    <a href="#work">Work</a>
+    <a href="#career">Career</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <p class="menu__foot">Brand Partners — Founder, Cinematographer</p>
+</div>
+
+<main id="main">
+
+<!-- ============================================================
+     4. HERO
+     ============================================================ -->
+<section class="hero" id="home">
+  <div class="hero__type">
+    <p class="hero__eyebrow" data-reveal>Founder, Brand Partners</p>
+    <h2 class="hero__name" data-reveal>
+      <span>Ronald</span>
+      <span>Abi</span>
+    </h2>
+    <p class="hero__role" data-reveal>Cinematographer</p>
+
+    <p class="hero__stat" data-reveal><b>20+</b><span>Years of<br>Experience</span></p>
+
+    <p class="hero__lede" data-reveal>
+      <!-- EDITABLE — short intro line -->
+      Two decades behind the camera. Light, lens and the long discipline
+      of telling a story one frame at a time.
+    </p>
+    <a class="btn" href="#work" data-cursor="link">See the work</a>
+  </div>
+
+  <div class="hero__visual" id="heroVisual">
+    <div class="frame frame--hero" data-src="assets/hero.jpg">
+      <img src="assets/hero.png" alt="Portrait of Ronald Abi, cinematographer and founder of Brand Partners" onerror="window.__imgFail(this)" />
+    </div>
+    <span class="streak streak--1" aria-hidden="true"></span>
+    <span class="streak streak--2" aria-hidden="true"></span>
+    <span class="hero__mark hero__mark--a" aria-hidden="true"></span>
+    <span class="hero__mark hero__mark--b" aria-hidden="true"></span>
+    <span class="hero__meta" aria-hidden="true">35MM &nbsp; F1.4 &nbsp; 1/50</span>
+  </div>
+
+  <div class="hero__scroll" aria-hidden="true"><span></span>Scroll</div>
+</section>
+
+<!-- ============================================================
+     5. CAREER — STAGE TIMELINE (no years, by request)
+        Add/remove <article class="mile"> blocks freely.
+     ============================================================ -->
+<section class="career" id="career">
+  <div class="career__pin">
+    <div class="career__head">
+      <h2 class="sec-title">Career</h2>
+      <p class="career__year" id="careerYear">The Beginning</p>
+    </div>
+
+    <div class="career__progress" aria-hidden="true"><i id="careerBar"></i></div>
+
+    <div class="career__track" id="careerTrack">
+
+      <article class="mile">
+        <p class="mile__year">The Beginning</p>
+        <h3 class="mile__title">[EARLY CAREER]</h3>
+        <p class="mile__desc">[Short description — how the work began. Two lines max.]</p>
+        <div class="frame" data-src="assets/career-01.jpg">
+          <img src="assets/career-01.jpg" alt="The beginning of Ronald Abi's career" loading="lazy" onerror="window.__imgFail(this)" />
+        </div>
+      </article>
+
+      <article class="mile">
+        <p class="mile__year">Early Work</p>
+        <h3 class="mile__title">[CAREER MILESTONE]</h3>
+        <p class="mile__desc">[Short description of this stage.]</p>
+        <div class="frame" data-src="assets/career-02.jpg">
+          <img src="assets/career-02.jpg" alt="Early work" loading="lazy" onerror="window.__imgFail(this)" />
+        </div>
+      </article>
+
+      <article class="mile">
+        <p class="mile__year">Breakthrough</p>
+        <h3 class="mile__title">[IMPORTANT PRODUCTION]</h3>
+        <p class="mile__desc">[Short description — the production that changed things.]</p>
+        <div class="frame" data-src="assets/career-03.jpg">
+          <img src="assets/career-03.jpg" alt="Breakthrough production" loading="lazy" onerror="window.__imgFail(this)" />
+        </div>
+      </article>
+
+      <article class="mile">
+        <p class="mile__year">Brand Partners</p>
+        <h3 class="mile__title">Founding Brand Partners</h3>
+        <p class="mile__desc">[BRAND PARTNERS DESCRIPTION — why it was founded and what it does.]</p>
+        <div class="frame" data-src="assets/career-04.jpg">
+          <img src="assets/career-04.jpg" alt="Founding of Brand Partners" loading="lazy" onerror="window.__imgFail(this)" />
+        </div>
+      </article>
+
+      <article class="mile">
+        <p class="mile__year">Today</p>
+        <h3 class="mile__title">20+ Years Behind the Camera</h3>
+        <p class="mile__desc">[Where the work stands now — clients, scale, direction.]</p>
+        <div class="frame" data-src="assets/career-05.jpg">
+          <img src="assets/career-05.jpg" alt="Present day work" loading="lazy" onerror="window.__imgFail(this)" />
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     6. FLOATING CINEMATIC GALLERY
+     ============================================================ -->
+<section class="gallery" id="work">
+  <h2 class="sec-title gallery__title">Selected Frames</h2>
+
+  <div class="gallery__stage" id="galleryStage">
+
+    <span class="word word--1" aria-hidden="true">Cinematography</span>
+    <span class="word word--2" aria-hidden="true">On Set</span>
+    <span class="word word--3" aria-hidden="true">Light</span>
+    <span class="word word--4" aria-hidden="true">Frame</span>
+    <span class="word word--5" aria-hidden="true">Story</span>
+
+    <!-- data-speed = parallax multiplier | data-depth = 3D offset on mouse move -->
+    <figure class="shot shot--1" data-speed="0.10" data-depth="26" data-cursor="view"
+            data-title="[PROJECT NAME]" data-year="[PROJECT YEAR]" data-tag="Cinematography">
+      <div class="frame" data-src="assets/gallery-01.jpg">
+        <img src="assets/gallery-01.jpg" alt="[PROJECT NAME]" loading="lazy" onerror="window.__imgFail(this)" />
+      </div>
+      <figcaption><b>[PROJECT NAME]</b><i>[PROJECT YEAR] — Cinematography</i></figcaption>
+    </figure>
+
+    <figure class="shot shot--2" data-speed="0.22" data-depth="-18" data-cursor="view"
+            data-title="[PROJECT NAME]" data-year="[PROJECT YEAR]" data-tag="Behind the scenes">
+      <div class="frame" data-src="assets/gallery-02.jpg">
+        <img src="assets/gallery-02.jpg" alt="[PROJECT NAME], behind the scenes" loading="lazy" onerror="window.__imgFail(this)" />
+      </div>
+      <figcaption><b>[PROJECT NAME]</b><i>[PROJECT YEAR] — Behind the scenes</i></figcaption>
+    </figure>
+
+    <figure class="shot shot--3" data-speed="0.06" data-depth="40" data-cursor="view"
+            data-title="[PROJECT NAME]" data-year="[PROJECT YEAR]" data-tag="Production">
+      <div class="frame" data-src="assets/gallery-03.jpg">
+        <img src="assets/gallery-03.jpg" alt="[PROJECT NAME], production still" loading="lazy" onerror="window.__imgFail(this)" />
+      </div>
+      <figcaption><b>[PROJECT NAME]</b><i>[PROJECT YEAR] — Production</i></figcaption>
+    </figure>
+
+    <figure class="shot shot--4" data-speed="0.28" data-depth="-34" data-cursor="view"
+            data-title="[PROJECT NAME]" data-year="[PROJECT YEAR]" data-tag="On set">
+      <div class="frame" data-src="assets/gallery-04.jpg">
+        <img src="assets/gallery-04.jpg" alt="[PROJECT NAME], on set" loading="lazy" onerror="window.__imgFail(this)" />
+      </div>
+      <figcaption><b>[PROJECT NAME]</b><i>[PROJECT YEAR] — On set</i></figcaption>
+    </figure>
+
+    <figure class="shot shot--5" data-speed="0.14" data-depth="18" data-cursor="view"
+            data-title="[PROJECT NAME]" data-year="[PROJECT YEAR]" data-tag="Camera">
+      <div class="frame" data-src="assets/gallery-05.jpg">
+        <img src="assets/gallery-05.jpg" alt="[PROJECT NAME], camera work" loading="lazy" onerror="window.__imgFail(this)" />
+      </div>
+      <figcaption><b>[PROJECT NAME]</b><i>[PROJECT YEAR] — Camera</i></figcaption>
+    </figure>
+
+    <figure class="shot shot--6" data-speed="0.20" data-depth="-24" data-cursor="view"
+            data-title="[PROJECT NAME]" data-year="[PROJECT YEAR]" data-tag="Light">
+      <div class="frame" data-src="assets/gallery-06.jpg">
+        <img src="assets/gallery-06.jpg" alt="[PROJECT NAME], lighting" loading="lazy" onerror="window.__imgFail(this)" />
+      </div>
+      <figcaption><b>[PROJECT NAME]</b><i>[PROJECT YEAR] — Light</i></figcaption>
+    </figure>
+
+    <figure class="shot shot--7" data-speed="0.08" data-depth="32" data-cursor="view"
+            data-title="[PROJECT NAME]" data-year="[PROJECT YEAR]" data-tag="Frame">
+      <div class="frame" data-src="assets/gallery-07.jpg">
+        <img src="assets/gallery-07.jpg" alt="[PROJECT NAME], framing" loading="lazy" onerror="window.__imgFail(this)" />
+      </div>
+      <figcaption><b>[PROJECT NAME]</b><i>[PROJECT YEAR] — Frame</i></figcaption>
+    </figure>
+
+    <figure class="shot shot--8" data-speed="0.24" data-depth="-14" data-cursor="view"
+            data-title="[PROJECT NAME]" data-year="[PROJECT YEAR]" data-tag="Story">
+      <div class="frame" data-src="assets/gallery-08.jpg">
+        <img src="assets/gallery-08.jpg" alt="[PROJECT NAME], story" loading="lazy" onerror="window.__imgFail(this)" />
+      </div>
+      <figcaption><b>[PROJECT NAME]</b><i>[PROJECT YEAR] — Story</i></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     7. CRAFT / CAMERA HUD
+     ============================================================ -->
+<section class="craft" id="about">
+  <div class="craft__stage" id="craftStage">
+    <div class="frame frame--camera" data-src="assets/camera.jpg">
+      <img src="assets/camera.jpg" alt="Cinema camera on set" loading="lazy" onerror="window.__imgFail(this)" />
+    </div>
+
+    <span class="hud-tag hud-tag--1"><i></i>Camera</span>
+    <span class="hud-tag hud-tag--2"><i></i>Light</span>
+    <span class="hud-tag hud-tag--3"><i></i>Lens</span>
+    <span class="hud-tag hud-tag--4"><i></i>Frame</span>
+    <span class="hud-tag hud-tag--5"><i></i>Movement</span>
+    <span class="hud-tag hud-tag--6"><i></i>Story</span>
+    <span class="craft__reticle" aria-hidden="true"></span>
+  </div>
+
+  <div class="craft__copy">
+    <h2 class="sec-title">The craft</h2>
+    <p>[Short paragraph about his approach to cinematography — camera, light, movement. Editable.]</p>
+    <p>[Second line about the discipline behind the work.]</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     8. BRAND PARTNERS
+     ============================================================ -->
+<section class="brand" id="brand">
+  <h2 class="brand__type"><span>Brand</span><span>Partners</span></h2>
+
+  <div class="brand__body">
+    <div class="frame frame--brand" data-src="assets/brand-partners.jpg">
+      <img src="assets/brand-partners.jpg" alt="Brand Partners at work" loading="lazy" onerror="window.__imgFail(this)" />
+    </div>
+
+    <div class="brand__copy">
+      <p class="brand__label">Founder</p>
+      <p class="brand__founder">Ronald Abi</p>
+      <p>[BRAND PARTNERS DESCRIPTION — what the studio does, who it serves, what it stands for.]</p>
+      <p class="brand__note">[Optional second paragraph — team, services, scale.]</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     9. FINAL FRAME
+     ============================================================ -->
+<section class="final">
+  <div class="frame frame--final" data-src="assets/profile.jpg">
+    <img src="assets/profile.jpg" alt="Ronald Abi" loading="lazy" onerror="window.__imgFail(this)" />
+  </div>
+  <div class="final__type">
+    <!-- EDITABLE closing line -->
+    <h2 data-reveal><span>The story</span><span>continues.</span></h2>
+    <p class="final__brand" data-reveal>Brand Partners</p>
+    <p class="final__role" data-reveal>Founder<span class="sep"></span>Cinematographer</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     10. CONTACT (values intentionally empty)
+     ============================================================ -->
+<section class="contact" id="contact">
+  <h2 class="sec-title">Contact</h2>
+  <dl class="contact__list">
+    <div><dt>Email</dt><dd><!-- email --></dd></div>
+    <div><dt>Phone</dt><dd><!-- phone --></dd></div>
+    <div><dt>Instagram</dt><dd><!-- @handle --></dd></div>
+    <div><dt>Location</dt><dd><!-- city --></dd></div>
+  </dl>
+</section>
+
+</main>
+
+<footer class="foot">
+  <span>Brand Partners</span>
+  <span>&copy; <span id="year"></span></span>
+</footer>
+
+<!-- ============================================================
+     11. FULLSCREEN IMAGE VIEWER
+     ============================================================ -->
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Image viewer" aria-hidden="true">
+  <button class="viewer__close" id="viewerClose" type="button" aria-label="Close viewer">Close</button>
+  <button class="viewer__nav viewer__nav--prev" id="viewerPrev" type="button" aria-label="Previous image"></button>
+  <button class="viewer__nav viewer__nav--next" id="viewerNext" type="button" aria-label="Next image"></button>
+  <figure class="viewer__figure">
+    <img id="viewerImg" src="" alt="" />
+    <figcaption>
+      <b id="viewerTitle"></b>
+      <i id="viewerMeta"></i>
+    </figcaption>
+  </figure>
+  <span class="viewer__count" id="viewerCount" aria-hidden="true"></span>
+</div>
+
+<!-- ============ LIBRARIES ============ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
